@@ -1,0 +1,297 @@
+---
+#title: "DS_4IZ566_Project2"
+output: html_document
+---
+
+
+## Online Shopper's Intention Analysis
+
+### Table of Contents
+- Desription
+  - Dataset nature and origin
+  - Basic dataset overview
+  - Columns description
+- Additional info + errors
+  - Check for nulls
+  - Problematic rows
+- Exploration analysis
+  - Correlation heatmap
+  - Purchasing trends
+  
+```{r}
+# Initial libraries import
+
+library(caret)
+library(gdata)
+library(ggplot2)
+library(corrplot)
+
+set.seed(150)
+```
+
+```{r}
+# Data Import
+
+df <- read.csv("Data/online_shoppers_intention.csv", sep=",")
+```
+
+## Description 🔎
+
+### Dataset nature and origin
+
+This dataset is called Online Shopper's Intention and comes from kaggle.com website.
+https://www.kaggle.com/roshansharma/online-shoppers-intention
+The dataset consists of feature vectors belonging to 12,330 sessions. The dataset was formed so that each session would belong to a different user in a 1-year period to avoid any tendency to a specific campaign, special day, user profile, or period.
+
+### Basic dataset overview
+```{r}
+dim(df)
+str(df)
+summary(df)
+```
+
+### Columns description
+
+**Revenue:**
+Target value statingwhether cosumer purchaed something or not
+
+```{r}
+plot0 <- ggplot(df, aes(x = Revenue, fill = Revenue)) + geom_bar()
+
+plot0
+```
+
+
+**Administrative, Informational, Product Related:**
+Types of pages visited in one session
+
+```{r}
+plot1 <- ggplot(df, aes(x=Administrative)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+plot1
+
+plot2 <- ggplot(df, aes(x=Informational)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+plot2
+
+plot3 <- ggplot(df, aes(x=ProductRelated)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+plot3
+```
+
+**Administrative Duration, Informational Duration, Product Related Duration:**
+How much time did user spend on this type of page. Sums of all pages under this type.
+
+```{r}
+# Administrative Duration
+plot1 <- ggplot(df, aes(x=Administrative_Duration)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") +
+    ylim(0,0.006)
+plot1
+
+# Informational Duration
+plot2 <- ggplot(df, aes(x=Informational_Duration)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") +
+    ylim(0,0.001)
+plot2
+
+# Product related duration
+plot3 <- ggplot(df, aes(x=ProductRelated_Duration)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") +
+    ylim(0,0.000025)
+plot3
+```
+
+**Bounce Rate:**
+Bounce rate is the percentage of single page visits (or web sessions). It is the percentage of visits in which a person leaves your website from the landing page without browsing any further.
+
+```{r}
+plot4 <- ggplot(df, aes(x=BounceRates)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+
+plot4
+```
+
+**Exit Rate:**
+Indicates how often visitors exit from website after visiting any number of pages on the site.
+
+```{r}
+plot5 <- ggplot(df, aes(x=ExitRates)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+
+plot5
+```
+
+
+**Page Value:**
+Page Value is the average value for a page that a user visited before landing on the goal page or completing an Ecommerce transaction (or both).
+
+```{r}
+plot6 <- ggplot(df, aes(x=PageValues)) + geom_histogram(aes(y=..density..), colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666") 
+
+plot6
+```
+
+**Special Day:**
+Indicates closeness to a special day (e.g. Mother's Day, Valentine's Day)
+
+```{r}
+labels <- c(1, 2, 3, 4, 5)
+
+plot7 <- ggplot(df, aes(x = SpecialDay)) + geom_bar(fill="deeppink3") 
+
+plot7
+```
+```
+
+**Operating Systems:**
+Unspecified different internet operating systems
+
+```{r}
+plot8 <- ggplot(df, aes(x = OperatingSystems)) + geom_bar(fill="deeppink3")
+
+plot8
+```
+
+**Browser:**
+Unspecified different internet browsers
+
+```{r}
+plot9 <- ggplot(df, aes(x = Browser)) + geom_bar(fill="deeppink3")
+
+plot9
+```
+
+**Region:**
+Unspecified different access regions
+
+```{r}
+plot10 <- ggplot(df, aes(x = Region)) + geom_bar(fill="deeppink3")
+
+plot10
+```
+
+**Visitor Type:**
+
+```{r}
+plot10 <-ggplot(df, aes(x="", y=VisitorType, fill=VisitorType))+
+geom_bar(width = 1, stat = "identity")
+
+pie1 <- plot10 + coord_polar("y")
+pie1
+
+```
+
+
+**Traffic Type:**
+
+```{r}
+plot11 <- ggplot(df, aes(x = TrafficType)) + geom_bar(fill="deeppink3")
+
+plot11
+```
+```
+
+**Weekend:**
+Indicates if session was established during the weekend or not
+
+```{r}
+plot12 <- ggplot(df, aes(x = Weekend, fill = Weekend)) + geom_bar()
+
+plot12
+```
+
+## Additional info + errors 💥
+
+### Check for nulls
+```{R}
+null_rows <- df[is.na(df$Administrative),]
+
+paste("Number of null rows: ", nrow(null_rows))
+
+paste0("Percentage of dataset: ", nrow(null_rows)/nrow(df))
+
+```
+
+### Problematic rows
+
+```{R}
+negative_duration_rows <- df$Informational_Duration < 0
+
+cat("Problematic rows: ",sum(negative_duration_rows, na.rm = TRUE))
+
+```
+
+
+### Correlation heatmap
+
+```{R}
+
+# Turning dataframe into numeric vector
+df$Administrative <- as.numeric(df$Administrative)
+df$Administrative_Duration <- as.numeric(df$Administrative_Duration)
+df$Informational <- as.numeric(df$Informational)
+df$Informational_Duration <- as.numeric(df$Informational_Duration)
+df$ProductRelated <- as.numeric(df$ProductRelated)
+df$ProductRelated_Duration <- as.numeric(df$ProductRelated_Duration)
+df$BounceRates <- as.numeric(df$BounceRates)
+df$ExitRates <- as.numeric(df$ExitRates)
+df$PageValues <- as.numeric(df$PageValues)
+df$SpecialDay <- as.numeric(df$SpecialDay)
+df$Month <- as.numeric(df$Month)
+df$OperatingSystems <- as.numeric(df$OperatingSystems)
+df$Browser <- as.numeric(df$Browser)
+df$Region <- as.numeric(df$Region)
+df$TrafficType <- as.numeric(df$TrafficType)
+df$VisitorType <- as.numeric(df$VisitorType)
+df$Weekend <- as.numeric(df$Weekend)
+df$Revenue <- as.numeric(df$Revenue)
+
+str(df)
+
+```
+
+```{R}
+
+M <- cor(df)
+corrplot(M, method="color")
+
+```
+
+
+### Purchase trends
+
+```{r}
+
+positions <- c("Jan", "Feb", "Mar", "April", "May", "June", "Jul", "Aug", "Sep", "Oct", "Nov")
+
+df <- read.csv("Data/online_shoppers_intention.csv", sep=",")
+
+p<-ggplot(data=df, aes(x=Month, fill = Month)) + geom_bar() + scale_x_discrete(limits = positions)
+p
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
